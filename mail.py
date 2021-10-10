@@ -4,10 +4,10 @@ class Mail:
     """
     Class for describing an email message.
     """
-    def __init__(self, sender_ID, receiver_ID, subject, body):
+    def __init__(self, sender_ID, receiver_ID, timestamp, subject, body):
         self.sender_ID = sender_ID
         self.receiver_ID = receiver_ID
-        self.timestamp = datetime.now()
+        self.timestamp = timestamp
         self.subject = subject
         self.body = body
     
