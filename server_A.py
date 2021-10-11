@@ -2,6 +2,7 @@ import yaml
 import utils
 import pickle
 import socket
+import argparse
 from mail import Mail
 
 """
@@ -146,10 +147,23 @@ def transmitEmailToServer_B():
     print("Email sent to server B successfully!")
 
 if __name__ == "__main__":
-    # turns on server and receives email from client
-    receiveEmailFromClient()
+    my_parser = argparse.ArgumentParser(description='Turn server A on for connection with a client or with server B!')
+    my_parser.add_argument('Mode',
+                            metavar='mode',
+                            type=str,
+                            help="Type 'server_server' to connect with server B. Type 'server_client' to connect with any of its clients.")
+    
+    args = my_parser.parse_args()
+    mode = args.Mode
+    
+    if mode == 'server_client':
+        # turns on server and receives email from client
+        receiveEmailFromClient()
+        
+        # ask user to turn on server B so email can be transmitted to it
+        print("Please turn on Server B now so that email can be transmitted to it!")
+        transmitEmailToServer_B()
 
-    print("Please turn on Server B now so that email can be transmitted to it!")
-
-    # sends email to server B
-    transmitEmailToServer_B()
+    elif mode == 'server_server':
+        # connect to server B and transmit emails to it
+        transmitEmailToServer_B()
