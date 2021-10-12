@@ -1,8 +1,11 @@
-import utils
+import re
 import pickle
 import socket
 from datetime import datetime
 from mail import Mail
+
+def email_is_valid(email_ID):
+    return bool(re.search("[a-zA-Z0-9](\w|-|\.|_)+@[a-zA-Z]+\.[a-z]", email_ID))
 
 HOST = '127.0.0.1'
 PORT = 3333
@@ -11,19 +14,19 @@ PORT = 3333
     PART I: Assembling of email to be sent
 """
 
-def writeEmail():
+def write_email():
     """
     Form the email message including information on sender & recipient ID's, subject and body.
     Returns: Mail object instantiated with user-inputted values.
     """
     while True:
         client_email_id = input("From (your email ID): ")
-        if utils.emailIsValid(client_email_id):
+        if email_is_valid(client_email_id):
             break
 
     while True:
         receiver_email_ID = input("To (recipient email ID): ")
-        if utils.emailIsValid(receiver_email_ID):
+        if email_is_valid(receiver_email_ID):
             break
 
     subject = input("Subject: ")
@@ -38,9 +41,9 @@ def writeEmail():
     PART II: Transmission of email from Client -> Server_A
 """
 
-def sendEmailToServer(email):
+def send_email_to_server_A(email):
     """
-    Send the ready email to server A.
+    Send the constructed email to server A.
     """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_sock:
         client_sock.connect((HOST, PORT))
@@ -117,9 +120,6 @@ def sendEmailToServer(email):
         
         print("\nEnd of Program!")
 
-def accessMailbox():
-    pass
-
 if __name__ == "__main__":
     email = Mail("aditya@gmail.com", "shalini@gmail.com", datetime.now(), "Heya", "Dear Adi,\nI love you.\nRegards,\nAditya")
-    sendEmailToServer(email)
+    send_email_to_server_A(email)

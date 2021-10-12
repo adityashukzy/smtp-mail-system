@@ -1,14 +1,16 @@
+import re
 import yaml
-import utils
 import pickle
 import socket
 import argparse
 from rich.table import Table
 from rich.console import Console
-from mail import Mail
 
-""" PART I """
-def receiveEmailFromClient():
+def email_is_valid(email_ID):
+    return bool(re.search("[a-zA-Z0-9](\w|-|\.|_)+@[a-zA-Z]+\.[a-z]", email_ID))
+
+""" Client -> Server """
+def receive_email_from_client_A():
     """
     Transmission of email from Client -> Server_A.
         - Turns server on in listening mode and receive incoming emails from clients.
@@ -55,7 +57,7 @@ def receiveEmailFromClient():
                 '''
                 sender_ID = client_msg.split(" ")[2]
                 
-                if utils.emailIsValid(sender_ID):
+                if email_is_valid(sender_ID):
                     client_conn.send(b"250 OK")
                     # For debugging purposes:
                     # print(f"Sender ID: {sender_ID}")
@@ -72,7 +74,7 @@ def receiveEmailFromClient():
                 '''
                 receiver_ID = client_msg.split(" ")[2]
                 
-                if utils.emailIsValid(receiver_ID):
+                if email_is_valid(receiver_ID):
                     client_conn.send(b"250 OK")
                     # For debugging purposes:
                     # print(f"Receiver ID: {receiver_ID}")
@@ -101,7 +103,7 @@ def receiveEmailFromClient():
                     # Store email in internal mailbox (in YAML format)
                     mail = [{'from': mail_obj.sender_ID, 'to': mail_obj.receiver_ID, 'timestamp': mail_obj.timestamp, 'subject': mail_obj.subject, 'body': mail_obj.body}]
 
-                    with open('outbox_A.yaml', 'a') as file:
+                    with open('smtp/group_A/outbox_A.yaml', 'a') as file:
                         document = yaml.dump(mail, file)
                 except:
                     # Alert client that email contents could not be received successfully
@@ -119,8 +121,35 @@ def receiveEmailFromClient():
                 client_conn.send(b"221 BYE")
                 break
 
-""" PART II """
-def transmitEmailToServer_B():
+
+""" Server -> Client """
+def access_mailbox_A():
+    """
+    Access emails in inbox from clients in group B.
+    """
+    table = Table(show_header=True, header_style='bold blue')
+    table.add_column("From")
+    table.add_column("To")
+    table.add_column("Time Sent")
+    table.add_column("Subject", width=30)
+    table.add_column("Body", width=50)
+        
+    with open('smtp/group_A/inbox_A.yaml', 'r') as file:
+        mailbox = yaml.load(file, Loader=yaml.FullLoader)
+
+        if mailbox:
+            for mail in mailbox:
+                table.add_row(mail['from'], mail['to'], mail['timestamp'], mail['subject'], mail['body'], end_section=True)
+        
+            console = Console()
+            console.print(table)
+        
+        else:
+            print("No emails in the server mailbox!")
+
+
+""" Server_A -> Server_B """
+def transmit_email_to_server_B():
     """
         Transmission of email from SERVER_A -> SERVER_B.
             - Turns on server A so as to connect with server B and sends all emails collected in the internal mailbox so far.
@@ -142,7 +171,7 @@ def transmitEmailToServer_B():
 
         # Server A will first transmit all the emails it has in its outbox that need to be sent to Server B
         # Server A will transmit all the emails as one YAML file
-        with open('outbox_A.yaml', 'rb') as file:
+        with open('smtp/group_A/outbox_A.yaml', 'rb') as file:
             l = file.read(2048)
             while l:
                 serverB_conn.send(bytes(l))
@@ -151,49 +180,46 @@ def transmitEmailToServer_B():
     print("Email sent to server B successfully!")
 
 
-def accessMailbox():
-    """
-    Access emails in inbox from clients in group B.
-    """
-    table = Table(show_header=True, header_style='bold blue')
-    table.add_column("From")
-    table.add_column("To")
-    table.add_column("Time Sent")
-    table.add_column("Subject", width=30)
-    table.add_column("Body", width=50)
-        
-    with open('inbox_A.yaml', 'r') as file:
-        mailbox = yaml.load(file, Loader=yaml.FullLoader)
+""" Server_B -> Server_ A """
+def receive_email_from_server_B():
+    pass
 
-        if mailbox:
-            for mail in mailbox:
-                email = Mail(mail['from'], mail['to'], mail['timestamp'], mail['subject'], mail['body'])
-                table.add_row(email.sender_ID, email.receiver_ID, email.timestamp, email.subject, email.body, end_section=True)
-        
-            console = Console()
-            console.print(table)
-        
-        else:
-            print("No emails in the server mailbox!")
 
 if __name__ == "__main__":
     my_parser = argparse.ArgumentParser(description='Turn server A on for connection with a client or with server B!')
     my_parser.add_argument('Mode',
                             metavar='mode',
                             type=str,
-                            help="Type 'server_server' to connect with server B. Type 'server_client' to connect with any of its clients.")
-    
+                            help="Type 'fetch' to fetch emails from users in server B. Type 'send' to send email to a user in server B. Type 'inbox' to view your inbox.")
+
+    my_parser.add_argument('-y',
+                            metavar='--your_email',
+                            action='store',
+                            help="If you are running server A in inbox mode, please specify your email id so that emails sent to you may be displayed.")
+
     args = my_parser.parse_args()
     mode = args.Mode
-    
-    if mode == 'server_client':
-        # turns on server and receives email from client
-        receiveEmailFromClient()
-        
-        # ask user to turn on server B so email can be transmitted to it
-        print("Please turn on Server B now so that email can be transmitted to it!")
-        transmitEmailToServer_B()
+    email_ID = args.y
 
-    elif mode == 'server_server':
-        # connect to server B and transmit emails to it
-        transmitEmailToServer_B()
+    console = Console()
+    
+    if mode == 'send':
+        # turn on server and have client write and send it an email
+        receive_email_from_client_A()
+        
+        # asks user to turn on server B so email can be transmitted to it
+        print("Please turn on Server B now so that email can be transmitted to it!")
+        transmit_email_to_server_B()
+
+    elif mode == 'fetch':
+        # turn on server A to receive any incoming email from server B
+        receive_email_from_server_B()
+    
+    elif mode == 'inbox':
+        if not email_ID:
+            console.print("\nPlease provide your email id to check your inbox!\n[bold magenta]Example:[/bold magenta] [u][i]python server_B.py inbox -y example@gmail.com[/i][/u]\n")
+        else:
+            console.print(f"\n[bold magenta]Inbox for {email_ID}![/bold magenta]\n", justify='center')
+            access_mailbox_A(email_ID)
+    else:
+        print("Invalid mode selected!")
