@@ -3,19 +3,20 @@ import utils
 import pickle
 import socket
 import argparse
+from rich.table import Table
+from rich.console import Console
 from mail import Mail
 
-"""
-    PART I: Transmission of email from Client -> Server_A
+""" PART I """
+def receiveEmailFromClient():
+    """
+    Transmission of email from Client -> Server_A.
+        - Turns server on in listening mode and receive incoming emails from clients.
     NOTES:
         - sc_sock: server-client socket
         - port used: 3333
-"""
+    """
 
-def receiveEmailFromClient():
-    """
-    Turn server on in listening mode and receive incoming emails.
-    """
     HOST = '127.0.0.1'
     PORT = 3333
 
@@ -100,7 +101,7 @@ def receiveEmailFromClient():
                     # Store email in internal mailbox (in YAML format)
                     mail = [{'from': mail_obj.sender_ID, 'to': mail_obj.receiver_ID, 'timestamp': mail_obj.timestamp, 'subject': mail_obj.subject, 'body': mail_obj.body}]
 
-                    with open('server_A_mailbox.yaml', 'a') as file:
+                    with open('outbox_A.yaml', 'a') as file:
                         document = yaml.dump(mail, file)
                 except:
                     # Alert client that email contents could not be received successfully
@@ -118,33 +119,62 @@ def receiveEmailFromClient():
                 client_conn.send(b"221 BYE")
                 break
 
-"""
-    PART II: Transmission of email from SERVER_A -> SERVER_B
-    NOTES:
-        - ss_sock: server-server socket
-        - port used: 5555
-"""
-
+""" PART II """
 def transmitEmailToServer_B():
+    """
+        Transmission of email from SERVER_A -> SERVER_B.
+            - Turns on server A so as to connect with server B and sends all emails collected in the internal mailbox so far.
+        NOTES:
+            - ss_sock: server-server socket
+            - port used: 5555
+    """
+
     HOST = '127.0.0.1'
     PORT = 5555
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as ss_sock:
         ss_sock.bind((HOST, PORT))
         ss_sock.listen()
+        print("Server A is listening and waiting for server B to connect....")
 
         serverB_conn, serverB_addr = ss_sock.accept()
         print(f"Connected with Server B at address: {serverB_addr[0]} and port: {serverB_addr[1]}")
 
         # Server A will first transmit all the emails it has in its outbox that need to be sent to Server B
         # Server A will transmit all the emails as one YAML file
-        with open('server_A_mailbox.yaml', 'rb') as file:
+        with open('outbox_A.yaml', 'rb') as file:
             l = file.read(2048)
             while l:
                 serverB_conn.send(bytes(l))
                 l = file.read(2048)
     
     print("Email sent to server B successfully!")
+
+
+def accessMailbox():
+    """
+    Access emails in inbox from clients in group B.
+    """
+    table = Table(show_header=True, header_style='bold blue')
+    table.add_column("From")
+    table.add_column("To")
+    table.add_column("Time Sent")
+    table.add_column("Subject", width=30)
+    table.add_column("Body", width=50)
+        
+    with open('inbox_A.yaml', 'r') as file:
+        mailbox = yaml.load(file, Loader=yaml.FullLoader)
+
+        if mailbox:
+            for mail in mailbox:
+                email = Mail(mail['from'], mail['to'], mail['timestamp'], mail['subject'], mail['body'])
+                table.add_row(email.sender_ID, email.receiver_ID, email.timestamp, email.subject, email.body, end_section=True)
+        
+            console = Console()
+            console.print(table)
+        
+        else:
+            print("No emails in the server mailbox!")
 
 if __name__ == "__main__":
     my_parser = argparse.ArgumentParser(description='Turn server A on for connection with a client or with server B!')
