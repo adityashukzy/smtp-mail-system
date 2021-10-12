@@ -32,12 +32,14 @@ def accessMailbox(email_ID):
         mailbox = yaml.load(file, Loader=yaml.FullLoader)
 
         if mailbox:
-            for mail in mailbox:
+            inboxForGivenID = [mail for mail in mailbox if mail['to'] == email_ID]
+
+            for mail in inboxForGivenID:
                 email = Mail(mail['from'], mail['to'], mail['timestamp'], mail['subject'], mail['body'])
                 table.add_row(email.sender_ID, email.receiver_ID, email.timestamp, email.subject, email.body, end_section=True)
         
             console = Console()
-            console.print(table)
+            console.print(table, justify='center')
         
         else:
             print("No emails in the server mailbox!")
@@ -70,7 +72,7 @@ if __name__ == "__main__":
         if not email_ID:
             console.print("\nPlease provide your email id to check your inbox!\n[bold magenta]Example:[/bold magenta] [u][i]python server_B.py inbox -y example@gmail.com[/i][/u]\n")
         else:
-            console.print(f"\n\n[bold magenta]Inbox for {email_ID}![/bold magenta]\n", justify='left')
+            console.print(f"\n[bold magenta]Inbox for {email_ID}![/bold magenta]\n", justify='center')
             accessMailbox(email_ID)
     else:
         print("Invalid mode selected!")
