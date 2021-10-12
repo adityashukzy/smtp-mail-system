@@ -1,15 +1,15 @@
-from datetime import datetime
+
 
 class Mail:
     """
     Class for describing an email message.
     """
     def __init__(self, sender_ID, receiver_ID, timestamp, subject, body):
-        self.sender_ID = sender_ID
-        self.receiver_ID = receiver_ID
-        self.timestamp = timestamp
-        self.subject = subject
-        self.body = body
+        self.sender_ID = str(sender_ID)
+        self.receiver_ID = str(receiver_ID)
+        self.timestamp = str(timestamp)
+        self.subject = str(subject)
+        self.body = str(body)
     
     def display_mail(self):
         print("\n=================")
