@@ -9,27 +9,6 @@ from rich.console import Console
 def email_is_valid(email_ID):
     return bool(re.search("[a-zA-Z0-9](\w|-|\.|_)+@[a-zA-Z]+\.[a-z]", email_ID))
 
-""" Server_A -> Server_B """
-def receive_email_from_server_A():
-    HOST = '127.0.0.1'
-    PORT = 5555
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as ss_sock:
-        ss_sock.connect((HOST, PORT))
-        
-        with open('smtp/group_B/inbox_B.yaml', 'wb') as file:
-            while True:
-                data = ss_sock.recv(2048).decode()
-                if not data:
-                    break
-                file.write(bytes(data, encoding="UTF-8"))
-
-
-""" Server_B -> Server_A """
-def transmit_email_to_server_A():
-    pass
-
-
 """ Client -> Server_B """
 def receive_email_from_client_B():
     HOST = '127.0.0.1'
@@ -159,6 +138,54 @@ def access_mailbox_B(email_ID):
         
         else:
             print("No emails in the server mailbox!")
+
+
+""" Server_B -> Server_A """
+def transmit_email_to_server_A():
+    """
+        Transmission of email from SERVER_B -> SERVER_A.
+            - Turns on server B so as to connect with server A and sends all emails collected in the internal mailbox so far.
+        NOTES:
+            - ss_sock: server-server socket
+            - port used: 7777
+    """
+
+    HOST = '127.0.0.1'
+    PORT = 7777
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as ss_sock:
+        ss_sock.bind((HOST, PORT))
+        ss_sock.listen()
+        print("Server B is listening and waiting for server A to connect....")
+
+        serverA_conn, serverA_addr = ss_sock.accept()
+        print(f"Connected with Server A at address: {serverA_addr[0]} and port: {serverA_addr[1]}")
+
+        # Server B will first transmit all the emails it has in its outbox that need to be sent to Server A
+        # Server B will transmit all the emails as one YAML file
+        with open('smtp/group_A/outbox_B.yaml', 'rb') as file:
+            l = file.read(2048)
+            while l:
+                serverA_conn.send(bytes(l))
+                l = file.read(2048)
+    
+    print("Email sent to server A successfully!")
+
+
+""" Server_A -> Server_B """
+def receive_email_from_server_A():
+    HOST = '127.0.0.1'
+    PORT = 5555
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as ss_sock:
+        ss_sock.connect((HOST, PORT))
+        
+        with open('smtp/group_B/inbox_B.yaml', 'wb') as file:
+            while True:
+                data = ss_sock.recv(2048).decode()
+                if not data:
+                    break
+                file.write(bytes(data, encoding="UTF-8"))
 
 
 if __name__ == "__main__":

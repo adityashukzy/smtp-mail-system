@@ -185,7 +185,18 @@ def transmit_email_to_server_B():
 
 """ Server_B -> Server_ A """
 def receive_email_from_server_B():
-    pass
+    HOST = '127.0.0.1'
+    PORT = 7777
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as ss_sock:
+        ss_sock.connect((HOST, PORT))
+        
+        with open('smtp/group_A/inbox_A.yaml', 'wb') as file:
+            while True:
+                data = ss_sock.recv(2048).decode()
+                if not data:
+                    break
+                file.write(bytes(data, encoding="UTF-8"))
 
 
 if __name__ == "__main__":
