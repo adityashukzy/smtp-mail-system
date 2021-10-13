@@ -154,6 +154,7 @@ def access_mailbox_B(email_ID):
                 table.add_row(mail['from'], mail['to'], mail['timestamp'], mail['subject'], mail['body'], end_section=True)
         
             console = Console()
+            console.print(f"\n[bold magenta]Inbox for {email_ID}![/bold magenta]\n", justify='center')
             console.print(table, justify='center')
         
         else:
@@ -195,7 +196,6 @@ if __name__ == "__main__":
         if not email_ID:
             console.print("\nPlease provide your email id to check your inbox!\n[bold magenta]Example:[/bold magenta] [u][i]python server_B.py inbox -y example@gmail.com[/i][/u]\n")
         else:
-            console.print(f"\n[bold magenta]Inbox for {email_ID}![/bold magenta]\n", justify='center')
             access_mailbox_B(email_ID)
    
     else:

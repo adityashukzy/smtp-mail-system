@@ -127,22 +127,25 @@ def access_mailbox_A():
     """
     Access emails in inbox from clients in group B.
     """
-    table = Table(show_header=True, header_style='bold blue')
+    table = Table(show_header=True, header_style='bold magenta')
     table.add_column("From")
     table.add_column("To")
     table.add_column("Time Sent")
-    table.add_column("Subject", width=30)
+    table.add_column("Subject", width=25)
     table.add_column("Body", width=50)
         
     with open('smtp/group_A/inbox_A.yaml', 'r') as file:
         mailbox = yaml.load(file, Loader=yaml.FullLoader)
 
         if mailbox:
-            for mail in mailbox:
+            inboxForGivenID = [mail for mail in mailbox if mail['to'] == email_ID]
+
+            for mail in inboxForGivenID:
                 table.add_row(mail['from'], mail['to'], mail['timestamp'], mail['subject'], mail['body'], end_section=True)
         
             console = Console()
-            console.print(table)
+            console.print(f"\n[bold magenta]Inbox for {email_ID}![/bold magenta]\n", justify='center')
+            console.print(table, justify='center')
         
         else:
             print("No emails in the server mailbox!")
@@ -219,7 +222,6 @@ if __name__ == "__main__":
         if not email_ID:
             console.print("\nPlease provide your email id to check your inbox!\n[bold magenta]Example:[/bold magenta] [u][i]python server_B.py inbox -y example@gmail.com[/i][/u]\n")
         else:
-            console.print(f"\n[bold magenta]Inbox for {email_ID}![/bold magenta]\n", justify='center')
             access_mailbox_A(email_ID)
     else:
         print("Invalid mode selected!")
