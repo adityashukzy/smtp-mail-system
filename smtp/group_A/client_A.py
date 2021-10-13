@@ -121,5 +121,6 @@ def send_email_to_server_A(email):
         print("\nEnd of Program!")
 
 if __name__ == "__main__":
+    # below statements are merely for debugging; neither of the client scripts will be run directly
     email = Mail("aditya@gmail.com", "shalini@gmail.com", datetime.now(), "Heya", "Dear Adi,\nI love you.\nRegards,\nAditya")
     send_email_to_server_A(email)
