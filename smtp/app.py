@@ -2,6 +2,8 @@ import yaml
 import random
 from rich import print
 from group_A import client_A
+from group_A.server_A import access_mailbox_A
+from group_B.server_B import access_mailbox_B
 from group_B import client_B
 from rich.console import Console
 
@@ -69,6 +71,7 @@ def main():
     console.print("2. Access your inbox")
     option = int(input("Select which operation you would like to do (enter 1 or 2)... "))
     
+    # if client is of group A
     if grp == "A":
         if option == 1:
             console.print("\n\t[u]Let's write the email now![/u]\n")
@@ -84,10 +87,25 @@ def main():
             console.print("Your email has successfully been sent to the destined mailbox in group B!")
         
         elif option == 2:
-            pass
-        
+            access_mailbox_A(email_ID)
+
+    # if client is of group B
     elif grp == "B":
-        pass
+        if option == 1:
+            console.print("\n\t[u]Let's write the email now![/u]\n")
+            
+            # constructing the email with the help of writeEmail function
+            email = client_B.write_email()
+            # email = Mail('123@gmail.com', '456@hotmail.com', datetime.now(), 'Hey!', "BYE\nBoY")
+
+            # sending the email to the server
+            client_B.send_email_to_server_B(email)
+
+            # confirm delivery of email to user
+            console.print("Your email has successfully been sent to the destined mailbox in group A!")
+
+        elif option == 2:
+            access_mailbox_B(email_ID)
 
     print("\n\n")
 
