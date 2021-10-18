@@ -8,4 +8,12 @@
   from: adityashukzy@gmail.com
   subject: Just saying hello!
   timestamp: '2021-10-11 19:41:47.779504'
-  to: shalinishukla@gmail.com
+  to: shalinishukla@gmail.com- body: 'This is a test email.
+
+    Regards,
+
+    Bye.'
+  from: adityashukzy@gmail.com
+  subject: Test email
+  timestamp: '2021-10-14 22:15:15.284594'
+  to: example123@gmail.com

@@ -163,7 +163,7 @@ def transmit_email_to_server_A():
 
         # Server B will first transmit all the emails it has in its outbox that need to be sent to Server A
         # Server B will transmit all the emails as one YAML file
-        with open('smtp/group_A/outbox_B.yaml', 'rb') as file:
+        with open('smtp/group_B/outbox_B.yaml', 'rb') as file:
             l = file.read(2048)
             while l:
                 serverA_conn.send(bytes(l))
