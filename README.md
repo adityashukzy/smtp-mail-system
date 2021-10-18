@@ -1,6 +1,9 @@
 # smtp-mail-system
 A Python implementation of the internal workings of the SMTP and POP3 protocols for email communication.
 
+## Overview of System Architecture
+![Architecture Diagram](https://github.com/adityashukzy/smtp-mail-system/blob/main/assets/SMTP%20Mail%20System.png?raw=true)
+
 ## Steps to send an email
 
 Say you are in group A and wish to send an email to a recipient in group B:
